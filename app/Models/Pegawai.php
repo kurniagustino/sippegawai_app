@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Pegawai extends Model
+{
+    use HasFactory;
+
+    protected $table = 'pegawai';
+    public $timestamps = false;
+    protected $guarded = [];
+
+    /**
+     * Mendefinisikan relasi ke model User (satu pegawai milik satu user).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'idUser', 'id');
+    }
+
+    /**
+     * Mendefinisikan relasi ke Riwayat Pendidikan (satu pegawai punya banyak riwayat).
+     */
+    public function riwayatPendidikans()
+    {
+        return $this->hasMany(RiwayatPendidikan::class, 'pegawai_id');
+    }
+
+    /**
+     * Mendefinisikan relasi ke Pelatihan (satu pegawai punya banyak pelatihan).
+     */
+    public function pelatihans()
+    {
+        return $this->hasMany(Pelatihan::class, 'pegawai_id');
+    }
+}
