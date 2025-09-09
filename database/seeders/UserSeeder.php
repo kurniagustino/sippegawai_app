@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             'nama'          => 'Administrator',
             'nip'           => 'ADMIN001',
             'jenis_kelamin' => 'L',
-            'jabatan'       => 'IT',
+            'jabatan_id'    => null, // Ganti menjadi null agar tidak ada error
         ]);
 
         // 2. Buat User untuk Pegawai
@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
             'nama'          => 'Norisman Novlin',
             'nip'           => '1505061111890003',
             'jenis_kelamin' => 'L',
-            'jabatan'       => 'IT',
+            'jabatan_id'    => null, // Ganti menjadi null juga di sini
             'tempatlahir'   => 'Jambi',
             'tanggal_lahir' => '1989-11-11',
         ]);

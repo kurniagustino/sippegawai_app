@@ -9,11 +9,17 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    /**
+     * Tampilkan form login.
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
+    /**
+     * Tangani proses login.
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -31,9 +37,9 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            if (Auth::user()->role === 'admin') {
-                return redirect()->intended('/dashboard-admin');
-            }
+            
+            // Arahkan semua user yang berhasil login ke rute universal '/dashboard'
+            // Logika tampilan akan ditangani di DashboardController.php
             return redirect()->intended('/dashboard');
         }
 
@@ -42,6 +48,9 @@ class LoginController extends Controller
         ]);
     }
 
+    /**
+     * Tangani proses logout.
+     */
     public function logout(Request $request)
     {
         Auth::logout();

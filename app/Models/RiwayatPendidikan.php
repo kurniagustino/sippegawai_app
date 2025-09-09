@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class RiwayatPendidikan extends Model
 {
     use HasFactory;
-        protected $guarded = [];
+        // Tambahkan baris ini
+        protected $table = 'riwayat_pendidikan';
+
+        protected $guarded = ['id'];
 
         public function pegawai()
         {

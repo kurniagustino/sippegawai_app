@@ -1,10 +1,10 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Edit Data Pegawai')
-@section('page-title', 'Edit Data Pegawai')
+@section('title', 'Edit Profil Saya')
+@section('page-title', 'Edit Profil Saya')
 
 @section('main-content')
-<form action="{{ route('pegawai.update', $pegawai->id) }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('pegawai.profile.update') }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     {{-- KARTU INFORMASI PRIBADI & AKUN --}}
@@ -112,7 +112,6 @@
     </div>
 
     {{-- KARTU RIWAYAT PENDIDIKAN & PELATIHAN --}}
-    {{-- ... (Kode kartu riwayat dari sebelumnya tidak perlu diubah) ... --}}
     <div class="card card-outline card-info">
         <div class="card-header">
             <h3 class="card-title">Riwayat Pendidikan</h3>
@@ -182,12 +181,11 @@
 
     <div class="mt-4">
         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-        <a href="{{ route('pegawai.index') }}" class="btn btn-secondary">Batal</a>
+        <a href="{{ route('pegawai.profile.show') }}" class="btn btn-secondary">Batal</a>
     </div>
 </form>
 
 <script>
-    // ... (Script JavaScript dari sebelumnya tidak perlu diubah) ...
     document.addEventListener('DOMContentLoaded', function () {
     function addItem(containerId, template) {
         const container = document.getElementById(containerId);

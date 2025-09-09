@@ -40,7 +40,7 @@
                     <tr>
                         <td>{{ $p->nama }}</td>
                         <td>{{ $p->nip }}</td>
-                        <td><span class="badge badge-secondary">{{ $p->jabatan }}</span></td>
+                        <td><span class="badge badge-secondary">{{ $p->jabatan->nama_jabatan ?? '-' }}</span></td>
                         <td>{{ $p->user->email ?? '-' }}</td>
                         <td>
     {{-- TOMBOL DETAIL BARU --}}

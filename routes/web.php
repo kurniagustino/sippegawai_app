@@ -1,9 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\BerkasController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\PegawaiDashboardController;
+use App\Http\Controllers\ProfilePegawaiController; // Pastikan ini diimpor
+use Illuminate\Support\Facades\Route;
 
 // 1. Arahkan halaman utama ke halaman login
 Route::get('/', function () {
@@ -20,19 +24,23 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Halaman Dashboard Admin
-    Route::get('/dashboard-admin', function () {
-        return view('dashboard.admin');
-    })->name('admin.dashboard');
+    // Dashboard Tunggal untuk Semua Role
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Halaman Dashboard Pegawai
-    Route::get('/dashboard', function () {
-        return view('dashboard.pegawai');
-    })->name('home');
+    // Profil & Pengaturan Akun Pegawai
+    Route::get('/profil', [ProfilePegawaiController::class, 'show'])->name('pegawai.profile.show');
+    Route::get('/profil/edit', [ProfilePegawaiController::class, 'edit'])->name('pegawai.profile.edit');
+    Route::put('/profil', [ProfilePegawaiController::class, 'update'])->name('pegawai.profile.update');
+    Route::get('/ganti-password', [PegawaiDashboardController::class, 'showChangePasswordForm'])->name('pegawai.password.show');
+    Route::put('/ganti-password', [PegawaiDashboardController::class, 'updatePassword'])->name('pegawai.password.update');
+    
+    // Rute untuk CRUD Pegawai (Hanya untuk Admin)
+    Route::middleware('role:admin')->group(function() {
+        Route::resource('pegawai', PegawaiController::class);
+        Route::resource('berkas', BerkasController::class);
+        Route::resource('jabatan', JabatanController::class);
+    });
 
-    // Rute untuk semua proses CRUD Pegawai
-    Route::resource('pegawai', PegawaiController::class);
-
-    // Rute untuk semua proses CRUD Berkas
-    Route::resource('berkas', BerkasController::class);
+    // Rute profil untuk pegawai yang sedang login
+    Route::get('/my-profile', [ProfilePegawaiController::class, 'show'])->name('pegawai.my.profile.show'); // <--- Ganti nama rute di sini
 });

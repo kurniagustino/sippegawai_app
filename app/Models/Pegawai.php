@@ -36,4 +36,10 @@ class Pegawai extends Model
     {
         return $this->hasMany(Pelatihan::class, 'pegawai_id');
     }
+
+    // Tambahkan relasi ini untuk menghubungkan ke tabel jabatans
+    public function jabatan()
+    {
+        return $this->belongsTo(Jabatan::class, 'jabatan_id');
+    }
 }

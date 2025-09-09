@@ -34,8 +34,8 @@
                 @endif
                 {{-- Logika baru untuk tombol Edit --}}
                 @if (auth()->check() && auth()->user()->id === $pegawai->user->id)
-                    {{-- Tombol ini untuk pegawai biasa, mengarah ke rute profil mereka sendiri --}}
-                    <a href="{{ route('pegawai.profile.show') }}" class="btn btn-warning"><b>Edit Profil Saya</b></a>
+                    {{-- Perbaikan: Tombol ini untuk pegawai biasa, mengarah ke rute profil mereka sendiri --}}
+                    <a href="{{ route('pegawai.profile.edit') }}" class="btn btn-warning"><b>Edit Profil Saya</b></a>
                 @elseif (auth()->check() && auth()->user()->role === 'admin')
                     {{-- Tombol ini hanya untuk admin, mengarah ke rute edit admin --}}
                     <a href="{{ route('pegawai.edit', $pegawai->id) }}" class="btn btn-warning"><b>Edit Pegawai</b></a>

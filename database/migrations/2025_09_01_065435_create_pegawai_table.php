@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('nama', 100)->nullable();
             $table->string('nip', 50)->nullable()->unique();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
-            $table->enum('jabatan', ['Dokter', 'Perawat', 'Bidan', 'Apoteker', 'IT'])->nullable();
+            $table->foreignId('jabatan_id')->nullable()->constrained('jabatans')->onDelete('set null');
             $table->string('tempatlahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->text('alamat')->nullable();

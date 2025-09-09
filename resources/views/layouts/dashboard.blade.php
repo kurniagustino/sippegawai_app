@@ -30,6 +30,7 @@
         </div>
         <div class="content">
             <div class="container-fluid">
+                {{-- Ini adalah "lubang" tempat "foto" (konten halaman) akan dimasukkan --}}
                 @yield('main-content')
             </div>
         </div>
