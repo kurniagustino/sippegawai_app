@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Jabatan;
+use App\Models\Pelatihan;
+use App\Models\RiwayatPendidikan;
+use App\Models\User;
+use App\Models\Berkas;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +16,14 @@ class Pegawai extends Model
 
     protected $table = 'pegawai';
     public $timestamps = false;
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+
+    // Tambahkan method ini di dalam model Pegawai
+    public function berkas()
+    {
+        return $this->hasMany(Berkas::class, 'pegawai_id');
+    }
 
     /**
      * Mendefinisikan relasi ke model User (satu pegawai milik satu user).

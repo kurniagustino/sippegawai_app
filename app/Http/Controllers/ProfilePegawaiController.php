@@ -5,51 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pegawai;
 use App\Models\Jabatan;
-use App\Models\User; // Tambahkan model User
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfilePegawaiController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
-     * Perbaikan: Menghilangkan parameter $id karena rute tidak mengirimkannya.
      */
     public function show()
     {
         $pegawai = auth()->user()->pegawai;
         $pegawai->load('user', 'riwayatPendidikans', 'pelatihans', 'jabatan');
-
         return view('pegawai.profile', compact('pegawai'));
     }
 
     /**
      * Show the form for editing the specified resource.
-     * Perbaikan: Menghilangkan parameter $id karena rute tidak mengirimkannya.
      */
     public function edit()
     {
@@ -60,7 +34,6 @@ class ProfilePegawaiController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Perbaikan: Menghilangkan parameter $id karena rute tidak mengirimkannya.
      */
     public function update(Request $request)
     {
@@ -68,60 +41,71 @@ class ProfilePegawaiController extends Controller
         $user = $pegawai->user;
 
         $request->validate([
-            'nama' => 'required|string|max:100',
-            'nip' => 'required|string|max:50|unique:pegawai,nip,' . $pegawai->id,
-            'jenis_kelamin' => 'required|string',
-            'jabatan_id' => 'required|integer|exists:jabatan,id', // Tambahkan validasi jabatan
+            'nama' => 'sometimes|required|string|max:100',
+            'nip' => 'sometimes|required|string|max:50|unique:pegawai,nip,' . $pegawai->id,
+            'jenis_kelamin' => 'sometimes|required|string',
+            'jabatan_id' => 'sometimes|required|integer|exists:jabatan,id',
             'tempatlahir' => 'nullable|string|max:100',
             'tanggal_lahir' => 'nullable|date',
             'alamat' => 'nullable|string|max:255',
             'nohp' => 'nullable|string|max:20',
             'mulaikerja' => 'nullable|date',
             'catatan' => 'nullable|string',
-            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
+            'username' => 'sometimes|required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        DB::transaction(function () use ($request, $pegawai, $user) {
-            // Update data Pegawai
-            $pegawai->update([
-                'nama' => $request->nama,
-                'nip' => $request->nip,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'jabatan_id' => $request->jabatan_id,
-                'tempatlahir' => $request->tempatlahir,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'alamat' => $request->alamat,
-                'mulaikerja' => $request->mulaikerja,
-                'nohp' => $request->nohp,
-                'catatan' => $request->catatan,
-            ]);
+        // ==========================================================
+        //         MENERAPKAN LOGIKA DARI REFERENSI ANDA
+        // ==========================================================
+        
+        // 1. Siapkan dulu data teks yang akan diupdate
+        $dataToUpdate = $request->except(['_token', '_method', 'foto', 'pendidikan', 'pelatihan', 'password_confirmation']);
 
-            // Update data User
-            $userData = [
-                'username' => $request->username,
-                'email' => $request->email,
-            ];
-            // Cek jika ada password baru yang diisi
-            if ($request->filled('password')) {
-                $userData['password'] = Hash::make($request->password);
+        // 2. Cek jika ada file foto baru yang di-upload
+        if ($request->hasFile('foto')) {
+            // Hapus foto lama dari storage jika ada
+            if ($pegawai->foto) {
+                Storage::disk('public')->delete($pegawai->foto);
             }
-            $user->update($userData);
 
-            // Update riwayat pendidikan
-            $pegawai->riwayatPendidikans()->delete();
+            // Upload file baru dan dapatkan path-nya
+            $newPhotoPath = $request->file('foto')->store('foto-pegawai', 'public');
+
+            // Tambahkan path baru ke data yang akan di-update
+            $dataToUpdate['foto'] = $newPhotoPath;
+        }
+
+        // 3. Lakukan semua update dalam satu transaksi
+        DB::transaction(function () use ($request, $pegawai, $user, $dataToUpdate) {
+            
+            // Update data pegawai (termasuk path foto baru jika ada)
+            $pegawai->update($dataToUpdate);
+
+            // Update data user jika ada
+            if ($request->has('username')) {
+                $userData = $request->only(['username', 'email']);
+                if ($request->filled('password')) {
+                    $userData['password'] = Hash::make($request->password);
+                }
+                $user->update($userData);
+                $user->name = $request->nama;
+                $user->save();
+            }
+
+            // Update riwayat
             if ($request->has('pendidikan')) {
+                $pegawai->riwayatPendidikans()->delete();
                 foreach ($request->pendidikan as $pendidikan) {
                     if (!empty($pendidikan['nama_institusi'])) {
                         $pegawai->riwayatPendidikans()->create($pendidikan);
                     }
                 }
             }
-
-            // Update riwayat pelatihan
-            $pegawai->pelatihans()->delete();
             if ($request->has('pelatihan')) {
+                $pegawai->pelatihans()->delete();
                 foreach ($request->pelatihan as $pelatihan) {
                     if (!empty($pelatihan['nama_pelatihan'])) {
                         $pegawai->pelatihans()->create($pelatihan);
@@ -131,13 +115,5 @@ class ProfilePegawaiController extends Controller
         });
 
         return redirect()->route('pegawai.profile.show')->with('success', 'Profil Anda berhasil diperbarui.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

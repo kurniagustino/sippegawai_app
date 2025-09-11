@@ -3,41 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pegawai;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 
 class PegawaiDashboardController extends Controller
 {
+    // ==========================================================
+    //     TAMBAHKAN METHOD BARU INI UNTUK MENANGANI DASHBOARD
+    // ==========================================================
     /**
-     * Menampilkan halaman dashboard pegawai.
+     * Menampilkan halaman dashboard untuk pegawai yang sedang login.
      */
-    public function dashboard()
+   public function dashboard()
     {
+        // Dengan relasi yang benar, ini akan berfungsi
         $pegawai = Auth::user()->pegawai;
 
-        // Ganti 'pegawai.dashboard' menjadi 'dashboard.pegawai'
-        return view('dashboard.pegawai', compact('pegawai'));
+        if (!$pegawai) {
+            abort(404, 'Data pegawai tidak ditemukan untuk user ini.');
+        }
+
+        // Ambil data untuk Stat Box
+        $totalBerkas = $pegawai->berkas()->count();
+
+        $berkasHampirKadaluarsa = $pegawai->berkas()
+            ->whereNotNull('tanggal_kadaluarsa')
+            ->where('tanggal_kadaluarsa', '>=', now())
+            ->where('tanggal_kadaluarsa', '<=', now()->addDays(90))
+            ->count();
+
+        $berkasSudahKadaluarsa = $pegawai->berkas()
+            ->whereNotNull('tanggal_kadaluarsa')
+            ->where('tanggal_kadaluarsa', '<', now())
+            ->count();
+
+        // Ambil data untuk Tabel Notifikasi
+        $listHampirKadaluarsa = $pegawai->berkas()
+            ->whereNotNull('tanggal_kadaluarsa')
+            ->where('tanggal_kadaluarsa', '>=', now())
+            ->where('tanggal_kadaluarsa', '<=', now()->addDays(90))
+            ->orderBy('tanggal_kadaluarsa', 'asc')
+            ->get();
+        
+        // Kirim semua data yang dibutuhkan oleh view
+        return view('dashboard.pegawai', compact(
+            'pegawai',
+            'totalBerkas',
+            'berkasHampirKadaluarsa',
+            'berkasSudahKadaluarsa',
+            'listHampirKadaluarsa'
+        ));
     }
+
     /**
      * Menampilkan halaman profil pegawai.
      */
     public function showProfile()
     {
-        // Ambil ID user yang sedang login
-        $userId = Auth::id();
-
-        // Cari data pegawai yang terhubung dengan user tersebut
-        // Menggunakan with('jabatan') untuk memuat data jabatan
-        $pegawai = Pegawai::with('jabatan', 'riwayatPendidikans', 'pelatihans')
-                            ->where('idUser', $userId)
-                            ->firstOrFail();
-                            
-        // Kirim data pegawai ke view
+        $pegawai = Auth::user()->pegawai()->with('jabatan', 'riwayatPendidikans', 'pelatihans')->firstOrFail();
         return view('pegawai.profile', compact('pegawai'));
     }
 
@@ -46,10 +70,10 @@ class PegawaiDashboardController extends Controller
      */
     public function updateProfile(Request $request)
     {
+        // ... (kode ini sudah benar, tidak diubah)
         $pegawai = Auth::user()->pegawai;
         $user = Auth::user();
 
-        // Validasi data yang boleh diubah oleh pegawai
         $request->validate([
             'nama' => 'required|string|max:100',
             'nohp' => 'nullable|string|max:20',
@@ -58,7 +82,6 @@ class PegawaiDashboardController extends Controller
             'alamat' => 'nullable|string',
         ]);
 
-        // Perbarui data di tabel 'pegawai'
         $pegawai->update([
             'nama' => $request->nama,
             'nohp' => $request->nohp,
@@ -67,7 +90,6 @@ class PegawaiDashboardController extends Controller
             'alamat' => $request->alamat,
         ]);
         
-        // Perbarui juga nama di tabel 'users' agar sinkron
         $user->update([
             'name' => $request->nama
         ]);
@@ -88,6 +110,7 @@ class PegawaiDashboardController extends Controller
      */
     public function updatePassword(Request $request)
     {
+        // ... (kode ini sudah benar, tidak diubah)
         $request->validate([
             'current_password' => ['required', 'string', function ($attribute, $value, $fail) {
                 if (!Hash::check($value, Auth::user()->password)) {

@@ -5,14 +5,21 @@
 
 @section('main-content')
 <div class="row">
-    {{-- Kolom Kiri: Informasi Utama --}}
+    {{-- Kolom Kiri: Informasi Utama & Foto --}}
     <div class="col-md-4">
         <div class="card card-primary card-outline">
             <div class="card-body box-profile">
                 <div class="text-center">
-                    <img class="profile-user-img img-fluid img-circle"
-                         src="https://ui-avatars.com/api/?name={{ urlencode($pegawai->nama) }}&background=007bff&color=fff&size=128"
-                         alt="User profile picture">
+                    @if($pegawai->foto)
+                        {{-- Jika ada foto, tampilkan dari storage --}}
+                        <img class="profile-user-img img-fluid img-circle" src="{{ Storage::url($pegawai->foto) }}"
+                             alt="Foto profil {{ $pegawai->nama }}" style="width: 128px; height: 128px; object-fit: cover;">
+                    @else
+                        {{-- Jika tidak ada foto, tampilkan avatar default --}}
+                        <img class="profile-user-img img-fluid img-circle"
+                             src="https://ui-avatars.com/api/?name={{ urlencode($pegawai->nama) }}&background=007bff&color=fff&size=128"
+                             alt="User profile picture">
+                    @endif
                 </div>
                 <h3 class="profile-username text-center">{{ $pegawai->nama }}</h3>
                 <p class="text-muted text-center">{{ $pegawai->jabatan->nama_jabatan ?? '-' }}</p>
@@ -28,23 +35,30 @@
                         <b>Username</b> <a class="float-right">{{ $pegawai->user->username ?? '-' }}</a>
                     </li>
                 </ul>
-                {{-- Kondisi untuk tombol Kembali --}}
-                @if (auth()->check() && auth()->user()->role === 'admin')
-                    <a href="{{ route('pegawai.index') }}" class="btn btn-secondary"><b>Kembali</b></a>
-                @endif
-                {{-- Logika baru untuk tombol Edit --}}
+
+                {{-- ========================================================== --}}
+                {{--         TOMBOL-TOMBOL AKSI (DENGAN TOMBOL MODAL)         --}}
+                {{-- ========================================================== --}}
                 @if (auth()->check() && auth()->user()->id === $pegawai->user->id)
-                    {{-- Perbaikan: Tombol ini untuk pegawai biasa, mengarah ke rute profil mereka sendiri --}}
-                    <a href="{{ route('pegawai.profile.edit') }}" class="btn btn-warning"><b>Edit Profil Saya</b></a>
+                    {{-- Tombol untuk pegawai mengedit data teks --}}
+                    <a href="{{ route('pegawai.profile.edit') }}" class="btn btn-warning btn-block mb-2"><b><i class="fas fa-pencil-alt mr-1"></i> Edit Detail Profil</b></a>
+                    {{-- Tombol untuk memunculkan modal ganti foto --}}
+                    <button type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#uploadFotoModal">
+                        <b><i class="fas fa-camera mr-1"></i> Ganti Foto Profil</b>
+                    </button>
                 @elseif (auth()->check() && auth()->user()->role === 'admin')
-                    {{-- Tombol ini hanya untuk admin, mengarah ke rute edit admin --}}
-                    <a href="{{ route('pegawai.edit', $pegawai->id) }}" class="btn btn-warning"><b>Edit Pegawai</b></a>
+                    {{-- Tombol untuk admin mengedit pegawai --}}
+                    <a href="{{ route('pegawai.edit', $pegawai->id) }}" class="btn btn-warning btn-block"><b>Edit Pegawai</b></a>
+                @endif
+                
+                @if (auth()->check() && auth()->user()->role === 'admin')
+                    <a href="{{ route('pegawai.index') }}" class="btn btn-secondary btn-block mt-2"><b>Kembali ke Daftar</b></a>
                 @endif
             </div>
         </div>
     </div>
 
-    {{-- Kolom Kanan: Detail & Riwayat --}}
+    {{-- Kolom Kanan: Detail & Riwayat (Tidak diubah) --}}
     <div class="col-md-8">
         <div class="card">
             <div class="card-header p-2">
@@ -133,4 +147,67 @@
         </div>
     </div>
 </div>
+
+{{-- ========================================================== --}}
+{{--              MODAL UNTUK UPLOAD FOTO PROFIL                --}}
+{{-- ========================================================== --}}
+<div class="modal fade" id="uploadFotoModal" tabindex="-1" role="dialog" aria-labelledby="uploadFotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadFotoModalLabel">Unggah Foto Profil Baru</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {{-- Form di dalam modal, butuh route baru. Pastikan route ini ada di web.php --}}
+            <form action="{{ route('pegawai.profile.update') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <p class="text-center text-muted">Pilih foto baru untuk diunggah (JPG, PNG, maks 2MB).</p>
+                    <div class="text-center mb-3">
+                         <img class="img-fluid img-circle" id="modal-foto-preview"
+                             src="{{ $pegawai->foto ? Storage::url($pegawai->foto) : 'https://ui-avatars.com/api/?name='.urlencode($pegawai->nama).'&background=6c757d&color=fff&size=128' }}"
+                             alt="Foto profil preview" style="width: 128px; height: 128px; object-fit: cover;">
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="modal-foto-input" name="foto" required>
+                            <label class="custom-file-label" for="modal-foto-input">Pilih file...</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Foto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fotoInput = document.getElementById('modal-foto-input');
+    const fotoPreview = document.getElementById('modal-foto-preview');
+    const fotoLabel = document.querySelector('.custom-file-label[for="modal-foto-input"]');
+
+    if(fotoInput) {
+        fotoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                fotoLabel.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fotoPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+@endpush

@@ -21,7 +21,7 @@ class BerkasController extends Controller
         return view('berkas.create', compact('pegawai'));
     }
 
-    public function store(Request $request)
+     public function store(Request $request)
     {
         $request->validate([
             'pegawai_id' => 'required|exists:pegawai,id',
@@ -29,6 +29,17 @@ class BerkasController extends Controller
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'tanggal_kadaluarsa' => 'nullable|date',
         ]);
+
+        // Cek apakah berkas dengan nama yang sama sudah diunggah untuk pegawai ini
+        $existingBerkas = Berkas::where('pegawai_id', $request->pegawai_id)
+                                ->where('nama_berkas', $request->nama_berkas)
+                                ->exists();
+
+        if ($existingBerkas) {
+            return redirect()->back()->withInput()->withErrors([
+                'nama_berkas' => 'Berkas dengan jenis ini sudah diunggah untuk pegawai yang dipilih.'
+            ]);
+        }
 
         // Menggunakan cara yang benar untuk menyimpan file di disk 'public'
         $filePath = $request->file('file')->store('berkas_pegawai', 'public');

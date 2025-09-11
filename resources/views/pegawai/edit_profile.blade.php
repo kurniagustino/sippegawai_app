@@ -179,10 +179,14 @@
         </div>
     </div>
 
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+    {{-- KARTU UNTUK TOMBOL AKSI --}}
+    {{-- Alternatif: Membuat Card Menjadi Transparan (Kurang Direkomendasikan) --}}
+<div class="card" style="background: transparent; border: none; box-shadow: none;">
+    <div class="card-body px-0">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Perubahan</button>
         <a href="{{ route('pegawai.profile.show') }}" class="btn btn-secondary">Batal</a>
     </div>
+</div>
 </form>
 
 <script>

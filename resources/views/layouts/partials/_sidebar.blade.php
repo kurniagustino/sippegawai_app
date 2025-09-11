@@ -56,11 +56,11 @@
                         <a href="{{ route('pegawai.profile.show') }}"
                             class="nav-link {{ request()->routeIs('pegawai.profile.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-user-circle"></i>
-                            <p>Profil Saya</p>
+                            <p>Biodata Saya</p>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
+                    <li class="nav-item {{ request()->routeIs('pegawai.berkas.*') ? 'menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ request()->routeIs('pegawai.berkas.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-file"></i>
                             <p>
                                 Berkas Saya
@@ -69,13 +69,13 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{ route('pegawai.berkas.index') }}" class="nav-link {{ request()->routeIs('pegawai.berkas.index') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Lihat Berkas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="{{ route('pegawai.berkas.create') }}" class="nav-link {{ request()->routeIs('pegawai.berkas.create') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Unggah Berkas</p>
                                 </a>
