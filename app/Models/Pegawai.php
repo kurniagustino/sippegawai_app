@@ -15,7 +15,6 @@ class Pegawai extends Model
     use HasFactory;
 
     protected $table = 'pegawai';
-    public $timestamps = false;
     protected $guarded = ['id'];
 
 

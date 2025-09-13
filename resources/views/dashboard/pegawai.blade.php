@@ -11,7 +11,8 @@
         <div class="card card-primary card-outline">
             <div class="card-body">
                 <h4 class="font-weight-bold">Halo, {{ $pegawai->nama }}!</h4>
-                <p class="text-muted">Selamat datang kembali di Sistem Informasi Pegawai. Berikut adalah ringkasan informasi dan status berkas Anda.</p>
+                <p class="text-muted">Selamat datang kembali di Sistem Informasi Pegawai. Berikut adalah ringkasan
+                    informasi dan status berkas Anda.</p>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
@@ -30,10 +31,20 @@
         {{-- Kartu Profil & Aksi Cepat --}}
         <div class="card">
             <div class="card-body text-center">
-                <img class="profile-user-img img-fluid img-circle" src="https://ui-avatars.com/api/?name={{ urlencode($pegawai->nama) }}&background=007bff&color=fff" alt="User profile picture">
+                @if($pegawai->foto)
+                {{-- Jika ada foto, tampilkan dari storage --}}
+                <img class="profile-user-img img-fluid img-circle" src="{{ Storage::url($pegawai->foto) }}"
+                    alt="Foto profil {{ $pegawai->nama }}" style="width: 128px; height: 128px; object-fit: cover;">
+                @else
+                {{-- Jika tidak ada foto, tampilkan avatar default --}}
+                <img class="profile-user-img img-fluid img-circle"
+                    src="https://ui-avatars.com/api/?name={{ urlencode($pegawai->nama) }}&background=007bff&color=fff&size=128"
+                    alt="User profile picture">
+                @endif
                 <h5 class="mt-3">{{ $pegawai->nama }}</h5>
                 <p class="text-muted">{{ $pegawai->user->email ?? '-' }}</p>
-                <a href="{{ route('pegawai.profile.show') }}" class="btn btn-primary btn-block"><b>Lihat Profil Saya</b></a>
+                <a href="{{ route('pegawai.profile.show') }}" class="btn btn-primary btn-block"><b>Lihat Profil
+                        Saya</b></a>
             </div>
         </div>
     </div>
@@ -48,7 +59,8 @@
                 <p>Total Berkas Saya</p>
             </div>
             <div class="icon"><i class="fas fa-folder"></i></div>
-            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i
+                    class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <div class="col-lg-4 col-md-6">
@@ -58,7 +70,8 @@
                 <p>Berkas Hampir Kadaluarsa</p>
             </div>
             <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i
+                    class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <div class="col-lg-4 col-md-6">
@@ -68,7 +81,8 @@
                 <p>Berkas Sudah Kadaluarsa</p>
             </div>
             <div class="icon"><i class="fas fa-times-circle"></i></div>
-            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ route('pegawai.berkas.index') }}" class="small-box-footer">Lihat Detail <i
+                    class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
 </div>
@@ -95,25 +109,26 @@
                 </thead>
                 <tbody>
                     @forelse ($listHampirKadaluarsa as $item)
-                        <tr>
-                            <td>{{ $loop->iteration }}.</td>
-                            <td>{{ $item->nama_berkas }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal_kadaluarsa)->isoFormat('D MMMM YYYY') }}</td>
-                            <td>
-                                <span class="badge badge-warning">
-                                    {{ \Carbon\Carbon::now()->diffInDays($item->tanggal_kadaluarsa) }} hari lagi
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('pegawai.berkas.index') }}" class="btn btn-xs btn-primary">Perbarui Berkas</a>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td>{{ $loop->iteration }}.</td>
+                        <td>{{ $item->nama_berkas }}</td>
+                        <td>{{ \Carbon\Carbon::parse($item->tanggal_kadaluarsa)->isoFormat('D MMMM YYYY') }}</td>
+                        <td>
+                            <span class="badge badge-warning">
+                                {{ \Carbon\Carbon::now()->diffInDays($item->tanggal_kadaluarsa) }} hari lagi
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ route('pegawai.berkas.index') }}" class="btn btn-xs btn-primary">Perbarui
+                                Berkas</a>
+                        </td>
+                    </tr>
                     @empty
-                        <tr>
-                            <td colspan="5" class="text-center">
-                                <i class="fas fa-check-circle text-success"></i> Semua berkas Anda aman.
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            <i class="fas fa-check-circle text-success"></i> Semua berkas Anda aman.
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>

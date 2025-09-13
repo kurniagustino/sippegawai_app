@@ -44,7 +44,7 @@ class ProfilePegawaiController extends Controller
             'nama' => 'sometimes|required|string|max:100',
             'nip' => 'sometimes|required|string|max:50|unique:pegawai,nip,' . $pegawai->id,
             'jenis_kelamin' => 'sometimes|required|string',
-            'jabatan_id' => 'sometimes|required|integer|exists:jabatan,id',
+            'jabatan_id' => 'sometimes|required|integer|exists:jabatans,id',
             'tempatlahir' => 'nullable|string|max:100',
             'tanggal_lahir' => 'nullable|date',
             'alamat' => 'nullable|string|max:255',
@@ -60,31 +60,31 @@ class ProfilePegawaiController extends Controller
         // ==========================================================
         //         MENERAPKAN LOGIKA DARI REFERENSI ANDA
         // ==========================================================
-        
+
         // 1. Siapkan dulu data teks yang akan diupdate
         $dataToUpdate = $request->except(['_token', '_method', 'foto', 'pendidikan', 'pelatihan', 'password_confirmation']);
 
         // 2. Cek jika ada file foto baru yang di-upload
         if ($request->hasFile('foto')) {
-            // Hapus foto lama dari storage jika ada
+            // Hapus foto lama dari storage (menggunakan path lengkap dari DB)
             if ($pegawai->foto) {
                 Storage::disk('public')->delete($pegawai->foto);
             }
 
-            // Upload file baru dan dapatkan path-nya
+            // Upload file baru dan dapatkan path lengkapnya
             $newPhotoPath = $request->file('foto')->store('foto-pegawai', 'public');
 
-            // Tambahkan path baru ke data yang akan di-update
+            // Tambahkan path lengkap baru ke data yang akan di-update
             $dataToUpdate['foto'] = $newPhotoPath;
         }
 
         // 3. Lakukan semua update dalam satu transaksi
         DB::transaction(function () use ($request, $pegawai, $user, $dataToUpdate) {
-            
+
             // Update data pegawai (termasuk path foto baru jika ada)
             $pegawai->update($dataToUpdate);
 
-            // Update data user jika ada
+            // Update data user jika ada (untuk form edit profil)
             if ($request->has('username')) {
                 $userData = $request->only(['username', 'email']);
                 if ($request->filled('password')) {
@@ -95,7 +95,7 @@ class ProfilePegawaiController extends Controller
                 $user->save();
             }
 
-            // Update riwayat
+            // Update riwayat (untuk form edit profil)
             if ($request->has('pendidikan')) {
                 $pegawai->riwayatPendidikans()->delete();
                 foreach ($request->pendidikan as $pendidikan) {
